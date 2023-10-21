@@ -1,0 +1,96 @@
+const http = require('http');
+
+const server = http.createServer((req, res) => {
+  res.writeHead(200, { 'Content-Type': 'text/plain' });
+  res.end('Welcome to the Node.js server!\n');
+});
+
+const PORT = 5000;
+
+server.listen(PORT, () => {
+  console.log(`Server running at http://localhost:${PORT}/`);
+});
+
+
+const express = require('express');
+const app = express();
+const fileOperations = require('./fileOperations'); 
+
+app.use(express.json());
+
+let users = [
+  { id: 1, name: 'Tanveer Hussain' },
+  { id: 2, name: 'Ateeq ur Rehman' },
+  { id: 3, name: 'Usama Lagari' }
+];
+
+
+app.get('/users', (req, res) => {
+  res.json(users);
+});
+
+
+app.get('/users/:id', (req, res) => {
+  const id = parseInt(req.params.id);
+  const user = users.find(u => u.id === id);
+  if (user) {
+    res.json(user);
+  } else {
+    res.status(404).json({ message: 'User not found' });
+  }
+});
+
+
+app.post('/users', (req, res) => {
+  const newUser = req.body;
+  newUser.id = users.length + 1;
+  users.push(newUser);
+  res.status(201).json(newUser);
+});
+
+
+app.put('/users/:id', (req, res) => {
+  const id = parseInt(req.params.id);
+  const updatedUser = req.body;
+  const index = users.findIndex(u => u.id === id);
+  if (index !== -1) {
+    users[index] = { ...users[index], ...updatedUser };
+    res.json(users[index]);
+  } else {
+    res.status(404).json({ message: 'User not found' });
+  }
+});
+
+
+app.delete('/users/:id', (req, res) => {
+  const id = parseInt(req.params.id);
+  const index = users.findIndex(u => u.id === id);
+  if (index !== -1) {
+    users.splice(index, 1);
+    res.sendStatus(204);
+  } else {
+    res.status(404).json({ message: 'User not found' });
+  }
+});
+
+module.exports = app; 
+
+const PORT = 5000;
+
+app.listen(PORT, () => {
+  console.log(`Server running at http://localhost:${PORT}`);
+});
+
+
+const fs = require('fs').promises;
+
+async function readFileAsync(filePath) {
+  try {
+    const content = await fs.readFile(filePath, 'utf8');
+    return content;
+  } catch (error) {
+    throw new Error('Error reading file: ' + error.message);
+  }
+}
+
+module.exports = { readFileAsync };
